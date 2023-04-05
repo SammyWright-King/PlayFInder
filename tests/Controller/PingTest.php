@@ -22,12 +22,14 @@ class PingTest extends TestCase
         $request = $this->createMock(RequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $stream = $this->createMock(StreamInterface::class);
+
         $response->expects($this->once())
             ->method('getBody')
             ->willReturn($stream);
+
         $stream->expects($this->once())
             ->method('write')
-            ->with("pong\n");
+            ->with("pong");
 
         $this->controller->pong($request, $response);
     }

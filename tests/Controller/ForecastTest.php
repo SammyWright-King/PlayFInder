@@ -1,7 +1,9 @@
 <?php
 
-namespace Playfinder\Controller;
+namespace PlayfinderTest\Controller;
 
+
+use http\Encoding\Stream;
 use Playfinder\Controller\Task;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -12,9 +14,33 @@ class ForecastTest extends TestCase
 {
     private Task $task;
 
-    protected function setUp(): void
+    protected function setup(): void
     {
-        $this->task = new Task();
+        $forecast_repo = $this->getMockBuilder('\Playfinder\Repositories\ForecastRepository')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $search_repo = $this->getMockBuilder('\Playfinder\Repositories\SearchRepository')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->task = new Task($forecast_repo, $search_repo);
+    }
+
+    /**
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     *
+     * test the forecast method
+     */
+    public function testForecast()
+    {
+        $forecast = $this->task->forecast([
+            "q" => "swansea",
+            "days" => 2
+        ]);
+
+        $this->assertNotEmpty($forecast);
+        $this->assertIsArray($forecast);
     }
 
     public function testOrdinaryForecast()
@@ -23,15 +49,29 @@ class ForecastTest extends TestCase
         $response = $this->createMock(ResponseInterface::class);
         $stream = $this->createMock(StreamInterface::class);
 
-        $this->task->ordinaryForecast($request, $response);
+        $response->expects($this->once())
+            ->method('getBody')
+            ->willReturn($stream);
+
+        $stream->expects($this->once())
+                ->method('write');
+
+        $this->task->ordinaryForecast($request, $response, "london");
+
     }
 
     public function testDaysForecast()
     {
-        $request = $this->createMock(RequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $stream = $this->createMock(StreamInterface::class);
 
-        $this->task->daysForecast($request, $response);
+        $response->expects($this->once())
+            ->method('getBody')
+            ->willReturn($stream);
+
+        $stream->expects($this->once())
+            ->method('write');
+
+        $task = $this->task->daysForecast($response, "swansea", 1);
     }
 }

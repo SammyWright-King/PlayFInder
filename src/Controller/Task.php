@@ -22,7 +22,10 @@ class Task extends BaseController
     {
         $query_data = ["q" => $location];
 
-        return $this->forecast($response, $query_data);
+        $forecast = $this->forecast($query_data);
+        $response->getBody()->write(json_encode($forecast));
+
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     /**
@@ -42,6 +45,10 @@ class Task extends BaseController
             "days" => $id
         );
 
-        return $this->forecast($response, $query_data);
+        $forecast = $this->forecast($query_data);
+
+        $response->getBody()->write(json_encode($forecast));
+
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }

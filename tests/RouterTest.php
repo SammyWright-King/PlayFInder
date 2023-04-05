@@ -26,4 +26,7 @@ class RouterTest extends TestCase
         $this->assertEquals('pong', trim(ob_get_contents()));
         ob_end_clean();
     }
+
+
+
 }

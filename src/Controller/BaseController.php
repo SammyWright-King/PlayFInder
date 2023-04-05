@@ -14,8 +14,6 @@ class BaseController
 
     public function __construct(ForecastRepository $forecast_repository, SearchRepository $search_repository)
     {
-
-
         $this->forecast_repository = $forecast_repository;
         $this->search_repository = $search_repository;
     }
@@ -29,32 +27,29 @@ class BaseController
      * @throws \Psr\Container\NotFoundExceptionInterface
      *
      * main forecast method
+     * should return array
      */
-    public function forecast(Response $response, array $data = [])
+    public function forecast(array $data = []):array
     {
+        //first check if location is a valid entry
+        $location = $this->search_repository->checkLocation($data['q']);
 
-            //first check if location is a valid entry
-            $location = $this->search_repository->checkLocation($data['q']);
+        if(empty($location)){
+            return ["error" => "location can not be resolved"];
+        }
+        else{
+            //call the forecast method on the forecast repository
+            $ans = $this->forecast_repository->forecast($data);
 
-            if(empty($location)){
+            if(array_key_exists('body', $ans)){
 
-                $response->getBody()->write(json_encode(["error" => "location can not be resolved"]));
+                return  $this->forecast_repository->weatherForecast($ans['body']);
+
+            }else{
+
+                return $ans['error'];
             }
-            else{
-                //call the forecast method on the forecast repository
-                $ans = $this->forecast_repository->forecast($data);
 
-                if(array_key_exists('body', $ans)){
-
-                    $forecast = $this->forecast_repository->weatherForecast($ans['body']);
-                    $response->getBody()->write(json_encode($forecast));
-                }else{
-
-                    $error = $ans['error'];
-                    $response->getBody()->write("$error");
-                }
-                $response->getStatusCode($ans['code']);
-            }
-            return $response->withHeader('Content-Type', 'application/json');
+        }
     }
 }
