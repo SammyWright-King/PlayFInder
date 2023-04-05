@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  version: '1.0'
+  title: PlayFinder Task Api Documentation
+  description: ''
+servers:
+  - url: http://localhost
+paths:
+  /{location}/forecast:
+    get:
+      summary: get forecast of a particulat location
+      description: To get the forecast in a particular location
+      parameters:
+        - name: location
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sunnyforecast"
+  /{location}/{number}-day:
+    get:
+      summary: get forecast for number of days 
+      description: to get the weather forecast for n number of days
+      parameters:
+        - in: path
+          name: location
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: number
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sunnyforecast'
+components:
+  schemas:
+    Sunnyforecast:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        forecast:
+          type: string
+          example: "sunny"
