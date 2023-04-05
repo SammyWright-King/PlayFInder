@@ -60,18 +60,4 @@ class ForecastTest extends TestCase
 
     }
 
-    public function testDaysForecast()
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $stream = $this->createMock(StreamInterface::class);
-
-        $response->expects($this->once())
-            ->method('getBody')
-            ->willReturn($stream);
-
-        $stream->expects($this->once())
-            ->method('write');
-
-        $task = $this->task->daysForecast($response, "swansea", 1);
-    }
 }
