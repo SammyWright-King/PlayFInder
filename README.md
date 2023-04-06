@@ -1,66 +1,41 @@
 # README #
 
-This describes the requirements and how to get started with this test app.
-
-## Requirements ##
-
-* PHP 8.0+
-* [Composer](https://getcomposer.org/)
-
-## How to get started ##
-
-Firstly, install the dependencies:
-```bash
-$ composer install
-```
-
-Now run the server locally:
-```bash
-$ php -S localhost:8080 -t public
-```
-
-You can test the server is working by running this CURL command:
-```bash
-$ curl localhost:8081/ping
-pong
-```
-
-Or run the unit tests:
-```bash
-$ ./bin/phpunit tests/
-```
+This describes my approach at the task.
 
 ## Technical test ##
 
-### Requirements ###
+### Declarations ###
+As specified by the task description/ deliverables
 
-Sign up for an account at https://www.weatherapi.com/ (this is free)
-and generate an API Key. Update this in `Playfinder\Router`.
+- 3 routes were defined in the router.php file
+    - /{location}/forecast : which is to pull the weatherapi forecast for that location on the same day
+    - /{location}/{id}-day : which is to pull the weatherapi forecast for that location for the entered number of days
+    - {route:.*}: with a callback function to handle andy other routes to the system which was not earlier defined as 404
+
+- The Task class was created with 2 methods to handle
+    - ordianryForecast for only the location
+    -daysForecast to forecast the weather in a location for "n" number of days
+    
+- In line with best practices, SOLID principle
+    - The forecast and search interfaces were created to individually handle calls to the weatherapi endpoints needed
+    - The repositories were injected into the BaseController which is then extended/inherited by the Task controller
+
+### Approach ###
+- to verify the location entered is valid on each api call
+    - a call is first made to the weatherapi search endpoint on the location to verify if it returns with any data
+    -if it does not, then the location entered is not valid
+    -otherwise,
+        - location is valid and you can now call the other endpoints on weatherapi
+
+### Response ###   
+ Response is in json format containing the relevant `date` and `forecast`
+   - {"date": "2023-04-05", "forecast": "Patchy rain possible"}
+   - [{"date": "2023-04-05", "forecast": "Patchy rain possible"}, {"date": "2023-04-06", "forecast": "Moderate Rain"}]
 
 ### Deliverables ###
+- unit test for some of the class and methods used
+- yaml file containing the swagger documentation
 
-You must, using the Weather API provided create API endpoints to provide the following:
-
-An API endpoint which returns the forecast for a given city (e.g. London), in a simple format
-such as "Sunny", "Rain", "Showers" etc. This response should be less than 1KB in size.
-
-These should be at `/<city>/forecast` for a one-day forecast and at `/<city>/3-day` for a 3-day forecast.
-
-Look at the `Router` and `Ping` files for examples on how to create new routes. See the
-[Slim Documentation](https://www.slimframework.com/) for examples and other documentation.
-
-**Please bear in mind:**
-* Invalid city locations
-* Potential issues with the API
-* Other invalid endpoints
-
-### Further optional contributions ###
-
-* Write Unit tests to cover the classes you created
-* Allow clients to request a simple image depending on the `Accept` HTTP header
-* Provide or generate Swagger (OpenAPI) documentation for your endpoints
-
-### I'm having difficulties! ###
-
-Email [Nathan](mailto:nathan@playfinder.com) with a description of your problem,
-and he will be happy to help.
+### Any clarifications? ###
+kindly send a message to: 
+[Olumuyiwa](sammywright.king@gmail.com) .
