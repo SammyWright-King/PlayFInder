@@ -2,17 +2,16 @@
 
 namespace PlayfinderTest\Controller;
 
-
-use http\Encoding\Stream;
 use Playfinder\Controller\Task;
 use PHPUnit\Framework\TestCase;
+
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
 class ForecastTest extends TestCase
 {
-    private Task $task;
+    public Task $task;
 
     protected function setup(): void
     {
@@ -26,23 +25,42 @@ class ForecastTest extends TestCase
         $this->task = new Task($forecast_repo, $search_repo);
     }
 
-    /**
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     *
-     * test the forecast method
-     */
+
     public function testForecast()
     {
         $forecast = $this->task->forecast([
             "q" => "swansea",
-            "days" => 2
+            "days" => 1
         ]);
 
         $this->assertNotEmpty($forecast);
         $this->assertIsArray($forecast);
     }
 
+    /**
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * test the islocationvalid method
+     */
+    public function testIsLocationValid()
+    {
+        $reply = $this->task->isLocationValid("Swansea");
+
+        $this->assertIsBool($reply);
+    }
+
+    public function testShowImage()
+    {
+        $stream = $this->task->showImage(["q" => "swansea"]);
+
+        $this->assertIsWritable($stream);
+    }
+
+    /**
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * test for ordinary forecast
+     */
     public function testOrdinaryForecast()
     {
         $request = $this->createMock(RequestInterface::class);

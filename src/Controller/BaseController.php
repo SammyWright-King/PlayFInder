@@ -1,6 +1,4 @@
 <?php
-
-
 namespace Playfinder\Controller;
 
 use Psr\Http\Message\ResponseInterface as Response;
@@ -9,15 +7,14 @@ use Playfinder\Repositories\SearchRepository;
 
 class BaseController
 {
-    protected $forecast_repository;
-    protected $search_repository;
+    public $forecast_repository;
+    public $search_repository;
 
     public function __construct(ForecastRepository $forecast_repository, SearchRepository $search_repository)
     {
         $this->forecast_repository = $forecast_repository;
         $this->search_repository = $search_repository;
     }
-
 
     /**
      * @param Response $response
@@ -29,27 +26,59 @@ class BaseController
      * main forecast method
      * should return array
      */
-    public function forecast(array $data = []):array
+
+    public function forecast(array $data = [])
     {
-        //first check if location is a valid entry
-        $location = $this->search_repository->checkLocation($data['q']);
+        $ans = $this->forecast_repository->forecast($data);
 
-        if(empty($location)){
-            return ["error" => "location can not be resolved"];
-        }
-        else{
-            //call the forecast method on the forecast repository
-            $ans = $this->forecast_repository->forecast($data);
+        if($ans && array_key_exists('body', $ans) )
+        {
+            $forecast = $this->forecast_repository->weatherForecast($ans['body']);
+            return $forecast;
 
-            if(array_key_exists('body', $ans)){
-
-                return  $this->forecast_repository->weatherForecast($ans['body']);
-
-            }else{
-
-                return $ans['error'];
-            }
-
+        }else{
+            return ["error" => "Error obtaining weather forecast."];
         }
     }
+
+    /**
+     * @param $data
+     * @return array|mixed
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     *
+     */
+    public function showImage($data)
+    {
+        $ans = $this->forecast_repository->forecast($data);
+
+        if($ans && array_key_exists('body', $ans) )
+        {
+            $forecast = $this->forecast_repository->getWeatherDisplay($ans['body']);
+            return $forecast;
+
+        }else{
+            return "";
+        }
+    }
+
+    /**
+     * @param $data
+     * @return bool
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     *
+     * check location is valid
+     */
+    public function isLocationValid($location): bool
+    {
+        $location = $this->search_repository->checkLocation($location);
+
+        if(empty($location)){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
 }

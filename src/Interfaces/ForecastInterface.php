@@ -9,7 +9,7 @@ interface ForecastInterface
      *
      * forecast method
      */
-    public function forecast(array $fields = []);
+    public function forecast($fields);
 
     /**
      * @param $weather
@@ -17,4 +17,12 @@ interface ForecastInterface
      * return weather forecast summary
      */
     public function weatherForecast($weather);
+
+    /**
+     * @param array $data
+     * @return mixed
+     *
+     * get weather display
+     */
+    public function getWeatherDisplay(array $data);
 }

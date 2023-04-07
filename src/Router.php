@@ -7,9 +7,10 @@ use DI\Container;
 use GuzzleHttp\Client;
 use Playfinder\Controller\Ping;
 use Playfinder\Controller\Task;
-use Playfinder\Middlewares\ErrorHandling;
+use Playfinder\Handler\GeneralErrorHandler;
+use Playfinder\Handler\ShutdownHandler;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\RequestInterface as Request;
 use Slim\App;
 
 class Router
@@ -49,10 +50,23 @@ class Router
         });
     }
 
-    public function handle(RequestInterface $request)
+    public function handle(Request $request)
     {
+
         $this->addRoutes();
-        $this->app->addErrorMiddleware(true, true, true);
+
+        $callableResolver = $this->app->getCallableResolver();
+        $responseFactory = $this->app->getResponseFactory();
+
+        $errorHandler = new GeneralErrorHandler($callableResolver, $responseFactory);
+        $shutdownHandler = new ShutdownHandler($request, $errorHandler, true);
+        register_shutdown_function($shutdownHandler);
+
+        $this->app->addRoutingMiddleware();
+
+        $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
+        $errorMiddleware->setDefaultErrorHandler($errorHandler);
+
         $this->app->run($request);
     }
 }

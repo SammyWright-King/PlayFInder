@@ -2,16 +2,16 @@
 
 namespace Playfinder\Repositories;
 
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Psr7\Request;
 use Psr\Container\ContainerInterface;
 use Playfinder\Interfaces\ForecastInterface;
+use function PHPUnit\Framework\throwException;
 
 class ForecastRepository implements ForecastInterface
 {
     private $ci;
     private $client;
+
     public function __construct(ContainerInterface  $container)
     {
         $this->ci = $container;
@@ -25,10 +25,9 @@ class ForecastRepository implements ForecastInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      * forecast weather
      */
-    public function forecast(array $fields = [])
+    public function forecast($fields = [])
     {
         try{
-
             $fields['key'] = $this->ci->get('api_key');
 
             $request = new Request('GET', 'forecast.json');
@@ -36,11 +35,12 @@ class ForecastRepository implements ForecastInterface
                 'query' => $fields
             ]);
 
-            //return $response->getBody()->getContents();
+            $forecasts = (array) json_decode($response->getBody()->getContents(), true);
+
             return [
                 "status" => true,
                 "code" => $response->getStatusCode(),
-                "body" => (array) json_decode($response->getBody()->getContents(), true)
+                "body" => $forecasts['forecast']['forecastday']
             ];
         }catch(Exception $e){
             return [
@@ -49,7 +49,6 @@ class ForecastRepository implements ForecastInterface
                 "error" => "internal server error"
             ];
         }
-
     }
 
     /**
@@ -57,14 +56,9 @@ class ForecastRepository implements ForecastInterface
      * @return array|mixed
      * extract and format the weather forecast
      */
-    public function weatherForecast($weather_detail)
+    public function weatherForecast($forecasts)
     {
-
         $arr = [];
-
-        //$result = json_decode($weather_detail, TRUE);
-
-        $forecasts = $weather_detail['forecast']['forecastday'];
 
         if(count($forecasts) == 1){
             $forecast = $forecasts[0];
@@ -77,11 +71,35 @@ class ForecastRepository implements ForecastInterface
                 //extract the day's weather condition
                 array_push($arr, [
                     "date" => $forecast['date'],
-                    "forecast" => $forecast['day']['condition']['text']
+                    "forecast" => $forecast['day']['condition']['text'],
                 ]);
             }
         }
 
         return $arr;
+    }
+
+    /**
+     * @param array $data
+     * @return mixed
+     *
+     */
+    public function getWeatherDisplay(array $data)
+    {
+        try{
+            $condition = $data[0]['day']['condition'];
+            $icon = $condition['icon'];
+            $icon_url = substr($icon, 2);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $icon_url);
+            $data = curl_exec($ch);
+            curl_close($ch);
+
+            return $data;
+        }catch (\Exception $e){
+            return $e->getMessage();
+        }
     }
 }
