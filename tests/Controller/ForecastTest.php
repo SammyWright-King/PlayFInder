@@ -53,7 +53,7 @@ class ForecastTest extends TestCase
     {
         $stream = $this->task->showImage(["q" => "swansea"]);
 
-        $this->assertIsWritable($stream);
+        $this->assertIsString($stream);
     }
 
     /**

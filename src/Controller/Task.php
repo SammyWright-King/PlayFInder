@@ -33,11 +33,12 @@ class Task extends BaseController
             //check if request has header accept and image
             if($accept_type = $request->getHeader('accept')){
                 if(str_contains($accept_type[0], "image")){
-
+                    ob_start();
                     $file = $this->showImage($query_data);
+                    ob_end_clean();
 
                     $response->getBody()->write($file);
-                    return $response->withHeader('Content-Type', 'image/*');
+                    return $response->withHeader('Content-Type', 'image/png');
                 }
                 die("only image header is allowed");
             }else{
